@@ -11,7 +11,7 @@ public class Main {
 		} catch (Exception e) { /* ignore, not important */ }
 		
 		RegiCode regi = new RegiCode();
-		//Phototheque phototheque = new Phototheque();
+		
 
 	}
 
