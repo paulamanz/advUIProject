@@ -13,11 +13,13 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
+import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.SwingConstants;
 import javax.swing.TransferHandler;
+import javax.swing.table.DefaultTableModel;
 
 import java.awt.GridLayout;
 import java.awt.Insets;
@@ -31,6 +33,16 @@ public class RegiCode extends JFrame {
 	private JButton loop2, loop3, loop4, right, straight, left, play, playstep, star;
 	private JPanel mainPanel, methodPanel;
 	private JTextField mainTextField, starTextField;
+	private JTable table;
+	private ImageIcon ball = new ImageIcon("src/ball.jpg");
+	
+	private String [] colunas = {"1", "2", "3", "4"};
+	private Object [][] dados = {
+		    {ball, "", "", ""},
+		    {"", "", "", ""},
+		    {"", "", "", ""},
+		    {"", "", "", ""}
+		};
 	
 	public RegiCode() {
 		super("RegiCode");
@@ -51,8 +63,31 @@ public class RegiCode extends JFrame {
 	}
 	
 	public void setUpMainPanel() {
+
+		DefaultTableModel model = new DefaultTableModel(dados, colunas) {
+		    @Override
+		    public Class<?> getColumnClass(int column) {
+		    		return ImageIcon.class;
+		            
+		        }
+		    
+		};
+				
+		
+		
 		mainPanel = new JPanel();
 		mainPanel.setBackground(Color.BLACK);
+		table = new JTable(model);
+		table.setRowHeight(65);
+		table.setRowSelectionAllowed(false);;
+		mainPanel.add(table);
+		//ImageIcon loop2icon = new ImageIcon("src/ball.jpg");
+		//loop2 = new JButton(loop2icon);
+		//mainPanel.add(loop2);
+		
+		//table.setValueAt(loop2icon, 0, 0);
+		
+
 		getContentPane().add(mainPanel, BorderLayout.CENTER);
 	}
 	
