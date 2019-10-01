@@ -1,6 +1,7 @@
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
@@ -18,6 +19,7 @@ import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.SwingConstants;
 import javax.swing.TransferHandler;
+import javax.swing.border.EmptyBorder;
 
 import java.awt.GridLayout;
 import java.awt.Insets;
@@ -58,22 +60,25 @@ public class RegiCode extends JFrame {
 	
 	public void setUpMethodPanel() {
 		methodPanel = new JPanel(new GridBagLayout());
+		methodPanel.setBorder(new EmptyBorder(6,6,6,6));
 		GridBagConstraints c = new GridBagConstraints();
 		c.weightx = 10;
 		c.weighty = 10;
-		c.gridwidth = 2;   //2 columns width
+		c.gridwidth = 2;   
 		c.insets = new Insets(5,5,5,5);
 		c.fill = GridBagConstraints.HORIZONTAL;
 		
 		
 		//methodPanel.setLayout(new GridLayout(0,1)); 
-		methodPanel.setBackground(Color.GRAY);
+		methodPanel.setBackground(new Color(247,247,247));
 		
 		
 		
 		JLabel labelMain = new JLabel("Main Method:");
+		labelMain.setFont(new Font("Helvetica Neue", Font.PLAIN, 20));
 		c.gridx = 0;
 		c.gridy = 0;
+		c.gridheight = 5;   
 		labelMain.setVerticalTextPosition(JLabel.BOTTOM);
 		methodPanel.add(labelMain, c);
 		
@@ -87,6 +92,7 @@ public class RegiCode extends JFrame {
 		
 		
 		JLabel labelStar = new JLabel("Star Method:");
+		labelStar.setFont(new Font("Helvetica Neue", Font.PLAIN, 20));
 		c.gridx=0;
 		c.gridy=2;
 		c.ipady = 0;
@@ -123,21 +129,11 @@ public class RegiCode extends JFrame {
 		toolBar = new JToolBar("My ToolBar");
 		toolBarGroup = new ButtonGroup();
 		
-		//Icon loop2icon = new ImageIcon("/Users/paulamanzano/Desktop/folder.png");
 		Icon loop2icon = new ImageIcon("src/repeat.png");
 		loop2 = new JButton(loop2icon);
 		loop2.setTransferHandler(new TransferHandler("Loop twice"));
 		toolBarGroup.add(loop2);
 		toolBar.add(loop2);
-		
-//		loop2.addMouseMotionListener(new MouseAdapter() {
-//            @Override
-//            public void mouseDragged(MouseEvent e) {
-//                JButton button = (JButton) e.getSource();
-//                TransferHandler handle = button.getTransferHandler();
-//                handle.exportAsDrag(button, e, TransferHandler.COPY);
-//            }
-//        });
 		
 		Icon loop3icon = new ImageIcon("src/repeat.png");
 		loop3 = new JButton (loop3icon);
