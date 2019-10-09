@@ -1,5 +1,6 @@
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -16,6 +17,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
@@ -28,6 +30,10 @@ import javax.swing.table.TableColumnModel;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.Point;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
+import java.awt.dnd.DnDConstants;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
@@ -42,6 +48,7 @@ public class RegiCode extends JFrame {
 	private ImageIcon regi = new ImageIcon("src/ghost.png");
 	private ImageIcon planet = new ImageIcon("src/saturn.png");
 	private ImageIcon meteorite = new ImageIcon("src/meteorite.png");
+	private MouseAdapter listener;
 
 	private String [] colunas = {"1", "2", "3", "4", "5", "6", "7"};
 	private Object [][] dados = {
@@ -64,12 +71,48 @@ public class RegiCode extends JFrame {
 	}
 
 	public void setUpUI() {
+		setUpListeners();
 		setUpToolBar();
-
 		setUpMainPanel();
 		setUpMethodPanel();
-
 	}
+	
+	public void setUpListeners(){
+
+		listener = new MouseAdapter() {
+			 
+					//Point p = null;
+					
+					public void mouseDragged(MouseEvent e) {
+						JButton button = (JButton) e.getSource();
+						TransferHandler handle = button.getTransferHandler();
+						handle.exportAsDrag(button, e, TransferHandler.COPY);
+				 }
+		 
+		      // @Override
+		      // public void mousePressed(MouseEvent e) {
+		      //   p = e.getLocationOnScreen();
+		      //   System.out.println("mousePressed");
+		      // }
+		 
+		      // @Override
+		      // public void mouseDragged(MouseEvent e) {
+		      //   JComponent c = (JComponent) e.getSource();
+		      //   Point l = c.getLocation();
+		      //   Point here = e.getLocationOnScreen();
+		      //   c.setLocation(l.x + here.x - p.x, l.y + here.y - p.y);
+		      //   p = here;
+//		    	JComponent jc = (JComponent)e.getSource();
+//		        TransferHandler th = jc.getTransferHandler();
+//				th.exportAsDrag(jc, e, TransferHandler.COPY);
+//				Point l = jc.getLocation();
+//		        Point here = e.getLocationOnScreen();
+//		        jc.setLocation(l.x + here.x - p.x, l.y + here.y - p.y);
+				//System.out.println("dragandrop");
+		     // }
+		    };
+	}
+	
 
 	public void setUpMainPanel() {
 
@@ -123,7 +166,8 @@ public class RegiCode extends JFrame {
 		methodPanel.add(labelMain, c);
 
 		mainTextField = new JTextField(30);
-		mainTextField.setDragEnabled(true);
+		mainTextField.setTransferHandler(new ValueImportTransferHandler());
+
 		c.gridwidth = 3;
 		c.gridx= 1;
 		c.gridy = 0;
@@ -141,6 +185,7 @@ public class RegiCode extends JFrame {
 		methodPanel.add(labelStar, c);
 
 
+		//starTextField = new JTextArea(50, 30);
 		starTextField = new JTextField(30);
 		c.gridwidth = 3;
 		c.ipady = 100;
@@ -169,31 +214,32 @@ public class RegiCode extends JFrame {
 
 
 	public void setUpToolBar() {
-		
-//		MouseAdapter listener = new MouseAdapter() {
-//			
-//		}
 
 		toolBar = new JToolBar("My ToolBar");
 		toolBarGroup = new ButtonGroup();
 
 		Icon loop2icon = new ImageIcon("src/2times.png");
 		loop2 = new JButton(loop2icon);
-		loop2.setTransferHandler(new TransferHandler("Loop twice"));
+		loop2.setTransferHandler(new ValueExportTransferHandler("Loop twice"));
+		loop2.addMouseMotionListener(listener);
 		toolBarGroup.add(loop2);
 		toolBar.add(loop2);
 
+
+
 		Icon loop3icon = new ImageIcon("src/3times.png");
 		loop3 = new JButton (loop3icon);
+		loop3.setTransferHandler(new ValueExportTransferHandler("Loop three times"));
+		loop3.addMouseMotionListener(listener);
 		toolBarGroup.add(loop3);
 		toolBar.add(loop3);
 
 		Icon loop4icon = new ImageIcon("src/4times.png");
 		loop4 = new JButton(loop4icon);
+		loop4.setTransferHandler(new ValueExportTransferHandler("Loop four times"));
+		loop4.addMouseMotionListener(listener);
 		toolBarGroup.add(loop4);
 		toolBar.add(loop4);
-//		loop4.addMouseListener(listener);
-//	    loop4.addMouseMotionListener(listener);
 
 		toolBar.addSeparator(new Dimension(100,30));
 
@@ -225,26 +271,93 @@ public class RegiCode extends JFrame {
 		this.getContentPane().add(toolBar, BorderLayout.NORTH);
 	}
 	
-	public void makeUI() {
+	 public void makeUI() {
 		 
-	    MouseAdapter listener = new MouseAdapter() {
-	 
-	      Point p = null;
-	 
-	      @Override
-	      public void mousePressed(MouseEvent e) {
-	        p = e.getLocationOnScreen();
-	      }
-	 
-	      @Override
-	      public void mouseDragged(MouseEvent e) {
-	        JComponent c = (JComponent) e.getSource();
-	        Point l = c.getLocation();
-	        Point here = e.getLocationOnScreen();
-	        c.setLocation(l.x + here.x - p.x, l.y + here.y - p.y);
-	        p = here;
-	      }
-	    };
-	  }
+		    MouseAdapter listener = new MouseAdapter() {
+		 
+		      Point p = null;
+		 
+		      @Override
+		      public void mousePressed(MouseEvent e) {
+		        p = e.getLocationOnScreen();
+		      }
+		 
+		      @Override
+		      public void mouseDragged(MouseEvent e) {
+		        JComponent c = (JComponent) e.getSource();
+		        Point l = c.getLocation();
+		        Point here = e.getLocationOnScreen();
+		        c.setLocation(l.x + here.x - p.x, l.y + here.y - p.y);
+		        p = here;
+		      }
+		    };
+		  }
+
+
+			public static class ValueExportTransferHandler extends TransferHandler {
+
+        public static final DataFlavor SUPPORTED_DATE_FLAVOR = DataFlavor.stringFlavor;
+        private String value;
+
+        public ValueExportTransferHandler(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
+
+        @Override
+        public int getSourceActions(JComponent c) {
+            return DnDConstants.ACTION_COPY_OR_MOVE;
+        }
+
+        @Override
+        protected Transferable createTransferable(JComponent c) {
+            Transferable t = new StringSelection(getValue());
+            return t;
+        }
+
+        @Override
+        protected void exportDone(JComponent source, Transferable data, int action) {
+            super.exportDone(source, data, action);
+            // Decide what to do after the drop has been accepted
+        }
+
+    }
+
+    public static class ValueImportTransferHandler extends TransferHandler {
+
+        public static final DataFlavor SUPPORTED_DATE_FLAVOR = DataFlavor.stringFlavor;
+
+        public ValueImportTransferHandler() {
+        }
+
+        @Override
+        public boolean canImport(TransferHandler.TransferSupport support) {
+            return support.isDataFlavorSupported(SUPPORTED_DATE_FLAVOR);
+        }
+
+        @Override
+        public boolean importData(TransferHandler.TransferSupport support) {
+            boolean accept = false;
+            if (canImport(support)) {
+                try {
+                    Transferable t = support.getTransferable();
+										Object value = t.getTransferData(SUPPORTED_DATE_FLAVOR);
+                    if (value instanceof String) {
+                        Component component = support.getComponent();
+                        if (component instanceof JTextField) {
+                          ((JTextField) component).setText(((JTextField) component).getText() + "\n"+ value.toString());
+                          accept = true;
+                        }
+                    }
+                } catch (Exception exp) {
+                    exp.printStackTrace();
+                }
+            }
+            return accept;
+        }
+    }
 
 }
