@@ -104,7 +104,7 @@ public class Maze {
 	}
 
 	public boolean isSolved() {
-		//this should go in the movements, not here. Will change it later.
+		
 		if (this.whereIsRegi.getX() == this.whereIsTreasure.getX() && this.whereIsRegi.getY() == this.whereIsTreasure.getY()) {
 			solved = true;
 		}
