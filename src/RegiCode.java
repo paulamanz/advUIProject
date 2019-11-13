@@ -1,4 +1,4 @@
-import java.awt.BorderLayout;
+ 	import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -6,6 +6,7 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
+import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.Icon;
@@ -33,33 +34,34 @@ import java.awt.Point;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DragGestureEvent;
+import java.awt.dnd.DragGestureListener;
+import java.awt.dnd.DragSource;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetAdapter;
+import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 public class RegiCode extends JFrame {
 
-	private JToolBar toolBar;
+	private JToolBar toolBar, toolBar2;
 	private ButtonGroup toolBarGroup;
-	private JButton loop2, loop3, loop4, right, straight, left, play, playstep, star;
+	private JButton loop2, loop3, loop4, right, straight, left, play, playbutton, star, down;
+	private JButton level1, level2, level3;
 	private JPanel mainPanel, methodPanel;
 	private JTextField mainTextField, starTextField;
-	private JTable table;
-	private ImageIcon regi = new ImageIcon("src/ghost.png");
-	private ImageIcon planet = new ImageIcon("src/saturn.png");
-	private ImageIcon meteorite = new ImageIcon("src/meteorite.png");
 	private MouseAdapter listener;
+	private MazeComponent mazecomp;
+	
+	private ArrayList<String> draggedIcons = new ArrayList<String>();
 
-	private String [] colunas = {"1", "2", "3", "4", "5", "6", "7"};
-	private Object [][] dados = {
-		    {regi, "", "", "", "", "", meteorite},
-		    {"", "", "", "", "", "", ""},
-		    {"", "", meteorite, "", "", "", ""},
-		    {"", "", "", "", "", "", ""},
-		    {"", meteorite, "", "", "", "", ""},
-		    {"", "", "", "", "", "", planet}
-		};
-
+	
 	public RegiCode() {
 		super("RegiCode");
 		this.setPreferredSize(new Dimension(1800,900));
@@ -88,177 +90,290 @@ public class RegiCode extends JFrame {
 						TransferHandler handle = button.getTransferHandler();
 						handle.exportAsDrag(button, e, TransferHandler.COPY);
 				 }
-		 
-		      // @Override
-		      // public void mousePressed(MouseEvent e) {
-		      //   p = e.getLocationOnScreen();
-		      //   System.out.println("mousePressed");
-		      // }
-		 
-		      // @Override
-		      // public void mouseDragged(MouseEvent e) {
-		      //   JComponent c = (JComponent) e.getSource();
-		      //   Point l = c.getLocation();
-		      //   Point here = e.getLocationOnScreen();
-		      //   c.setLocation(l.x + here.x - p.x, l.y + here.y - p.y);
-		      //   p = here;
-//		    	JComponent jc = (JComponent)e.getSource();
-//		        TransferHandler th = jc.getTransferHandler();
-//				th.exportAsDrag(jc, e, TransferHandler.COPY);
-//				Point l = jc.getLocation();
-//		        Point here = e.getLocationOnScreen();
-//		        jc.setLocation(l.x + here.x - p.x, l.y + here.y - p.y);
-				//System.out.println("dragandrop");
-		     // }
 		    };
 	}
 	
 
+	/*method to create the table*/
 	public void setUpMainPanel() {
 
-		DefaultTableModel model = new DefaultTableModel(dados, colunas) {
-		    @Override
-		    public Class<?> getColumnClass(int column) {
-		    		return ImageIcon.class;
-
-		        }
-
-		};
 
 		mainPanel = new JPanel();
 		mainPanel.setBackground(Color.BLACK);
-		table = new JTable(model);
-		
-		TableColumnModel columnModel = table.getColumnModel();
-		columnModel.getColumn(0).setPreferredWidth(100);
-		columnModel.getColumn(1).setPreferredWidth(100);
-		columnModel.getColumn(2).setPreferredWidth(100);
-		columnModel.getColumn(3).setPreferredWidth(100);
-		columnModel.getColumn(4).setPreferredWidth(100);
-		columnModel.getColumn(5).setPreferredWidth(100);
-		columnModel.getColumn(6).setPreferredWidth(100);
-		
-		table.setRowHeight(100);
-		table.setRowSelectionAllowed(false);;
-		mainPanel.add(table);
+		mazecomp = new MazeComponent(1);
+		mainPanel.add(mazecomp);
 
 		getContentPane().add(mainPanel, BorderLayout.CENTER);
 	}
+	
+	
 
+	/*method to create the mainlabel, star, arrows*/
 	public void setUpMethodPanel() {
+		
 		methodPanel = new JPanel(new GridBagLayout());
 		methodPanel.setBorder(new EmptyBorder(6,6,6,6));
 		GridBagConstraints c = new GridBagConstraints();
-		c.weightx = 10;
-		c.weighty = 10;
-		c.insets = new Insets(5,5,5,5);
 		c.fill = GridBagConstraints.HORIZONTAL;
-
 		methodPanel.setBackground(new Color(247,247,247));
 
 
 
 		JLabel labelMain = new JLabel("Main");
-		labelMain.setFont(new Font("Rockwell", Font.PLAIN, 20));
+		labelMain.setFont(new Font("MontSerrat", Font.PLAIN, 20));
 		c.gridx = 0;
 		c.gridy = 0;
-		labelMain.setVerticalTextPosition(JLabel.BOTTOM);
 		methodPanel.add(labelMain, c);
-
-		mainTextField = new JTextField(30);
-		mainTextField.setTransferHandler(new ValueImportTransferHandler());
-
-		c.gridwidth = 3;
-		c.gridx= 1;
+		
+		JPanel paneli = createEmptyJPanel();
+        new MyDropTargetListener(paneli);
+        c.gridx = 1;
 		c.gridy = 0;
-		c.ipady = 150;
-		methodPanel.add(mainTextField,c);
-
+		c.ipady = 1; 
+        methodPanel.add(paneli,c);
+        
 
 		Icon staricon = new ImageIcon("src/star.png");
 		JLabel labelStar = new JLabel(staricon);
-		//labelStar.setFont(new Font("Rockwell", Font.PLAIN, 20));
-		c.gridwidth = 1;
-		c.gridx=0;
-		c.gridy=1;
-		c.ipady = 0;
+		c.gridx = 0;
+		c.gridy = 1;
+		c.weighty = 1.0;
 		methodPanel.add(labelStar, c);
 
-
-		//starTextField = new JTextArea(50, 30);
-		starTextField = new JTextField(30);
-		c.gridwidth = 3;
-		c.ipady = 100;
-		c.gridx= 1;
+		
+		JPanel panelstar = createEmptyJPanel();
+        new MyDropTargetListener(panelstar);
+        c.gridx = 1;
 		c.gridy = 1;
-		methodPanel.add(starTextField,c);
+		c.insets = new Insets(3,0,0,0);
+        methodPanel.add(panelstar,c);
 
-		Icon playicon = new ImageIcon("src/fast-forward.png");
-		play = new JButton(playicon);
-		c.gridwidth = 2;   //2 columns wide
-		c.ipady = 0;
-		c.gridx=1;
-		c.gridy=2;
-		methodPanel.add(play, c);
 
-		Icon stepicon = new ImageIcon("src/play.png");
-		playstep = new JButton (stepicon);
+		Icon play = new ImageIcon("src/play.png");
+		playbutton = new JButton (play);
 		//c.gridwidth = 2;
 		c.gridx=0;
-		c.gridy = 2;
-		methodPanel.add(playstep, c);
+		c.gridy =3;
+		c.weighty = 1.0;
+		methodPanel.add(playbutton, c);
+		
+		
+		playbutton.addActionListener(event -> runCommands());
 
 
 		getContentPane().add(methodPanel, BorderLayout.EAST);
 	}
+	
+	public boolean runSingleCommand(String dir) {
+		boolean moved = false;
+		
+		moved = this.mazecomp.runDirections(dir);
+		try {
+			TimeUnit.SECONDS.sleep(2);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return moved;
+	}
+	public void runCommands() {
+		boolean success=false;
+		boolean moved = false;
+		
+		 
+		new Thread(){ 
+				public boolean moved=false;
+				public boolean success=false;
+				 public void run() { 
+					 for (String dir : draggedIcons) {
+						 try { 
+							 moved = runSingleCommand(dir);
+						 } catch (Exception e) { 
+							 e.printStackTrace();
+						 } 
+					 }
+					 success = mazecomp.isSolved();
+						if(success) {
+							System.out.println("THE GAME IS SOLVED!");
+						}else {
+							System.out.println("Try next time :(");
+						}
+					 
+					} 
+			}.start();
+			
+			
+			System.out.println("!!!!!");
+		
+		
+	}
+	
+	
+	class MyDropTargetListener extends DropTargetAdapter {
+
+	    private DropTarget dropTarget;
+	    private JPanel p;
+
+	    public MyDropTargetListener(JPanel panel) {
+	        p = panel;
+	        dropTarget = new DropTarget(panel, DnDConstants.ACTION_COPY, this, true, null);
+
+	    }
+
+	    @Override
+	    public void drop(DropTargetDropEvent event) {
+	        try {
+	            DropTarget test = (DropTarget) event.getSource();
+	            Component ca = (Component) test.getComponent();
+	            Point dropPoint = ca.getMousePosition();
+	            Transferable tr = event.getTransferable();
+
+	            if (event.isDataFlavorSupported(DataFlavor.imageFlavor)) {
+	                Icon ico = (Icon) tr.getTransferData(DataFlavor.imageFlavor);
+
+	                if (ico != null) {
+
+	                    p.add(new JLabel(ico));
+	                    p.revalidate();
+	                    p.repaint();
+	                    event.dropComplete(true);
+	                }
+	            } else {
+	                event.rejectDrop();
+	            }
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	            event.rejectDrop();
+	        }
+	    }
+	}
 
 
+	private static JPanel createEmptyJPanel() {
+        final JPanel p = new JPanel() {
+            @Override
+            public Dimension getPreferredSize() {
+                return new Dimension(300, 300);
+            }
+        };
+
+        TransferHandler dnd = new TransferHandler() {
+            @Override
+            public boolean canImport(TransferSupport support) {
+                if (!support.isDrop()) {
+                    return false;
+                }
+                //only Strings
+                if (!support.isDataFlavorSupported(DataFlavor.imageFlavor)) {
+                    return false;
+                }
+                return true;
+            }
+
+            @Override
+            public boolean importData(TransferSupport support) {
+                if (!canImport(support)) {
+                    return false;
+                }
+
+                Transferable tansferable = support.getTransferable();
+                Icon ico;
+                try {
+                    ico = (Icon) tansferable.getTransferData(DataFlavor.imageFlavor);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return false;
+                }
+                p.add(new JLabel(ico));
+                return true;
+            }
+        };
+
+        p.setTransferHandler(dnd);
+
+        return p;
+    }
+
+	/*method to create the toolbar*/
 	public void setUpToolBar() {
 
-		toolBar = new JToolBar("My ToolBar");
+		toolBar = new JToolBar();
+		toolBar2 = new JToolBar();
+		
+		JPanel panel = new JPanel();
+	    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+		
 		toolBarGroup = new ButtonGroup();
-
-		Icon loop2icon = new ImageIcon("src/2times.png");
-		loop2 = new JButton(loop2icon);
-		loop2.setTransferHandler(new ValueExportTransferHandler("Loop twice"));
-		loop2.addMouseMotionListener(listener);
-		toolBarGroup.add(loop2);
-		toolBar.add(loop2);
-
-
-
-		Icon loop3icon = new ImageIcon("src/3times.png");
-		loop3 = new JButton (loop3icon);
-		loop3.setTransferHandler(new ValueExportTransferHandler("Loop three times"));
-		loop3.addMouseMotionListener(listener);
-		toolBarGroup.add(loop3);
-		toolBar.add(loop3);
-
-		Icon loop4icon = new ImageIcon("src/4times.png");
-		loop4 = new JButton(loop4icon);
-		loop4.setTransferHandler(new ValueExportTransferHandler("Loop four times"));
-		loop4.addMouseMotionListener(listener);
-		toolBarGroup.add(loop4);
-		toolBar.add(loop4);
-
-		toolBar.addSeparator(new Dimension(100,30));
 
 		Icon lefticon = new ImageIcon("src/left.png");
 		left = new JButton(lefticon);
+		MyDragGestureListener leftDraglistener = new MyDragGestureListener();
+        DragSource leftDrag = new DragSource();
+        leftDrag.createDefaultDragGestureRecognizer(left, DnDConstants.ACTION_COPY, leftDraglistener);
 		toolBarGroup.add(left);
 		toolBar.add(left);
+		
+		toolBar.addSeparator(new Dimension(10,30));
+		
+		
+		Icon straighticon = new ImageIcon("src/straight.png");
+		straight = new JButton(straighticon);
+		MyDragGestureListener straightDraglistener = new MyDragGestureListener();
+        DragSource straightDrag = new DragSource();
+        straightDrag.createDefaultDragGestureRecognizer(straight, DnDConstants.ACTION_COPY, straightDraglistener);
+		toolBarGroup.add(straight);
+		toolBar.add(straight);
+		
+		toolBar.addSeparator(new Dimension(10,30));
+		
+		Icon downicon = new ImageIcon("src/down.png");
+		down = new JButton(downicon);
+		MyDragGestureListener downDraglistener = new MyDragGestureListener();
+        DragSource downDrag = new DragSource();
+        downDrag.createDefaultDragGestureRecognizer(down, DnDConstants.ACTION_COPY, downDraglistener);
+		toolBarGroup.add(down);
+		toolBar.add(down);
+		
+		toolBar.addSeparator(new Dimension(10,30));
+				
 		Icon righticon = new ImageIcon("src/right.png");
 		right = new JButton(righticon);
+		MyDragGestureListener rightDraglistener = new MyDragGestureListener();
+        DragSource rightDrag = new DragSource();
+        rightDrag.createDefaultDragGestureRecognizer(right, DnDConstants.ACTION_COPY, rightDraglistener);
 		toolBarGroup.add(right);
 		toolBar.add(right);
 		
 		toolBar.addSeparator(new Dimension(100,30));
 
-		Icon straighticon = new ImageIcon("src/straight.png");
-		straight = new JButton(straighticon);
-		toolBarGroup.add(straight);
-		toolBar.add(straight);
+		Icon loop2icon = new ImageIcon("src/cicle2.png");
+		loop2 = new JButton(loop2icon);
+		MyDragGestureListener dlistener = new MyDragGestureListener();
+        DragSource ds1 = new DragSource();
+        ds1.createDefaultDragGestureRecognizer(loop2, DnDConstants.ACTION_COPY, dlistener);
+        toolBarGroup.add(loop2);
+		toolBar.add(loop2);
+		toolBar.addSeparator(new Dimension(10,30));
 
+		Icon loop3icon = new ImageIcon("src/cicle3.png");
+		loop3 = new JButton (loop3icon);
+		MyDragGestureListener dlistener2 = new MyDragGestureListener();
+        DragSource ds2 = new DragSource();
+        ds2.createDefaultDragGestureRecognizer(loop3, DnDConstants.ACTION_COPY, dlistener2);
+		toolBarGroup.add(loop3);
+		toolBar.add(loop3);
+		toolBar.addSeparator(new Dimension(10,30));
+
+		Icon loop4icon = new ImageIcon("src/cicle4.png");
+		loop4 = new JButton(loop4icon);
+		MyDragGestureListener dlistener3 = new MyDragGestureListener();
+        DragSource ds3 = new DragSource();
+        ds3.createDefaultDragGestureRecognizer(loop4, DnDConstants.ACTION_COPY, dlistener3);
+		toolBarGroup.add(loop4);
+		toolBar.add(loop4);
+		toolBar.addSeparator(new Dimension(10,30));
+		
 		
 
 		toolBar.addSeparator(new Dimension(100,30));
@@ -267,8 +382,46 @@ public class RegiCode extends JFrame {
 		star = new JButton(staricon);
 		toolBarGroup.add(star);
 		toolBar.add(star);
+		
+		JPanel panelButton = new JPanel();
+		level1 = new JButton("Level 1");
+		level1.setPreferredSize(new Dimension(575,50));
+		level1.setBackground(new Color(224,176,255));
+		level1.setForeground(Color.BLACK);
+		level1.setFont(new Font("MontSerrat", Font.BOLD, 30));
+		panelButton.add(level1);
+		toolBar2.add(panelButton);
+		
+		level2 = new JButton("Level 2");
+		level2.setPreferredSize(new Dimension(575,50));
+		level2.setBackground(new Color(224,176,255));
+		level2.setForeground(Color.BLACK);
+		level2.setEnabled(false);
+		level2.setFont(new Font("MontSerrat", Font.BOLD, 30));
+		panelButton.add(level2);
+		toolBar2.add(panelButton);
+		
+		level3 = new JButton("Level 3");
+		level3.setPreferredSize(new Dimension(575,50));
+		level3.setBackground(new Color(224,176,255));
+		level3.setForeground(Color.BLACK);
+		level3.setEnabled(false);
+		level3.setFont(new Font("MontSerrat", Font.BOLD, 30));
+		panelButton.add(level3);
+		toolBar2.add(panelButton);
+		
+		
+		
+		toolBar.setFloatable( false);
+		toolBar2.setFloatable( false);
 
-		this.getContentPane().add(toolBar, BorderLayout.NORTH);
+		panel.add(toolBar2);
+	    panel.add(toolBar);
+
+
+
+
+		this.getContentPane().add(panel, BorderLayout.NORTH);
 	}
 	
 	 public void makeUI() {
@@ -292,72 +445,42 @@ public class RegiCode extends JFrame {
 		      }
 		    };
 		  }
+	 
+	 class MyDragGestureListener implements DragGestureListener {
+
+		    @Override
+		    public void dragGestureRecognized(DragGestureEvent event) {
+		        JButton label = (JButton) event.getComponent();
+		        final Icon ico = label.getIcon();
+		        
+		      
+		        draggedIcons.add(ico.toString().split("/")[1].split("\\.")[0]);
+		        System.out.println(draggedIcons);
 
 
-			public static class ValueExportTransferHandler extends TransferHandler {
+		        Transferable transferable = new Transferable() {
+		            @Override
+		            public DataFlavor[] getTransferDataFlavors() {
+		                return new DataFlavor[]{DataFlavor.imageFlavor};
+		            }
 
-        public static final DataFlavor SUPPORTED_DATE_FLAVOR = DataFlavor.stringFlavor;
-        private String value;
+		            @Override
+		            public boolean isDataFlavorSupported(DataFlavor flavor) {
+		                if (!isDataFlavorSupported(flavor)) {
+		                    return false;
+		                }
+		                return true;
+		            }
 
-        public ValueExportTransferHandler(String value) {
-            this.value = value;
-        }
+		            @Override
+		            public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
+		                return ico;
+		            }
+		        };
+		        event.startDrag(null, transferable);
+		    }
+		}
 
-        public String getValue() {
-            return value;
-        }
 
-        @Override
-        public int getSourceActions(JComponent c) {
-            return DnDConstants.ACTION_COPY_OR_MOVE;
-        }
-
-        @Override
-        protected Transferable createTransferable(JComponent c) {
-            Transferable t = new StringSelection(getValue());
-            return t;
-        }
-
-        @Override
-        protected void exportDone(JComponent source, Transferable data, int action) {
-            super.exportDone(source, data, action);
-            // Decide what to do after the drop has been accepted
-        }
-
-    }
-
-    public static class ValueImportTransferHandler extends TransferHandler {
-
-        public static final DataFlavor SUPPORTED_DATE_FLAVOR = DataFlavor.stringFlavor;
-
-        public ValueImportTransferHandler() {
-        }
-
-        @Override
-        public boolean canImport(TransferHandler.TransferSupport support) {
-            return support.isDataFlavorSupported(SUPPORTED_DATE_FLAVOR);
-        }
-
-        @Override
-        public boolean importData(TransferHandler.TransferSupport support) {
-            boolean accept = false;
-            if (canImport(support)) {
-                try {
-                    Transferable t = support.getTransferable();
-										Object value = t.getTransferData(SUPPORTED_DATE_FLAVOR);
-                    if (value instanceof String) {
-                        Component component = support.getComponent();
-                        if (component instanceof JTextField) {
-                          ((JTextField) component).setText(((JTextField) component).getText() + "\n"+ value.toString());
-                          accept = true;
-                        }
-                    }
-                } catch (Exception exp) {
-                    exp.printStackTrace();
-                }
-            }
-            return accept;
-        }
-    }
 
 }
