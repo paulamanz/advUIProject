@@ -38,7 +38,7 @@ public class MazeModel {
 				moved = this.maze.moveToRight();
 				break;
 			case "left":
-				moved = this.maze.moveToRight();
+				moved = this.maze.moveToLeft();
 				break;
 			case "straight":
 				moved = this.maze.moveUp();

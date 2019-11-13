@@ -59,7 +59,8 @@ public class RegiCode extends JFrame {
 	private MouseAdapter listener;
 	private MazeComponent mazecomp;
 	
-	private ArrayList<String> draggedIcons = new ArrayList<String>();
+	private ArrayList<String> draggedIconsInMain = new ArrayList<String>();
+	private ArrayList<String> draggedIconsInStar = new ArrayList<String>();
 
 	
 	public RegiCode() {
@@ -111,57 +112,70 @@ public class RegiCode extends JFrame {
 	/*method to create the mainlabel, star, arrows*/
 	public void setUpMethodPanel() {
 		
+		
 		methodPanel = new JPanel(new GridBagLayout());
 		methodPanel.setBorder(new EmptyBorder(6,6,6,6));
 		GridBagConstraints c = new GridBagConstraints();
-		c.fill = GridBagConstraints.HORIZONTAL;
 		methodPanel.setBackground(new Color(247,247,247));
-
-
+		
 
 		JLabel labelMain = new JLabel("Main");
-		labelMain.setFont(new Font("MontSerrat", Font.PLAIN, 20));
+		labelMain.setFont(new Font("MontSerrat", Font.BOLD, 20));
+		labelMain.setForeground(new Color(38,185,154));
 		c.gridx = 0;
 		c.gridy = 0;
+		labelMain.setVerticalTextPosition(JLabel.BOTTOM);
 		methodPanel.add(labelMain, c);
-		
+        
+        
 		JPanel paneli = createEmptyJPanel();
-        new MyDropTargetListener(paneli);
+		paneli.setBackground(new Color(166,240,225));
+        new MyDropTargetListener(paneli, "mainPanel");
         c.gridx = 1;
 		c.gridy = 0;
-		c.ipady = 1; 
+		//c.ipady = 1; 
+		c.gridheight = 1; 
+		c.gridwidth = 1;
+		c.insets = new Insets(0,4,0,0);		
         methodPanel.add(paneli,c);
-        
 
-		Icon staricon = new ImageIcon("src/star.png");
+		Icon staricon = new ImageIcon("src/loop.png");
 		JLabel labelStar = new JLabel(staricon);
 		c.gridx = 0;
 		c.gridy = 1;
-		c.weighty = 1.0;
+		c.gridheight = 1; //posicaonavertical
+		c.gridwidth = 1;
 		methodPanel.add(labelStar, c);
 
 		
 		JPanel panelstar = createEmptyJPanel();
-        new MyDropTargetListener(panelstar);
+		panelstar.setBackground(new Color(195,197,242));
+        new MyDropTargetListener(panelstar, "starPanel");
         c.gridx = 1;
 		c.gridy = 1;
-		c.insets = new Insets(3,0,0,0);
+		c.gridheight = 1; 
+		c.gridwidth = 1;
+		c.insets = new Insets(3,3,0,0);
         methodPanel.add(panelstar,c);
+        
+        
+        
 
 
-		Icon play = new ImageIcon("src/play.png");
-		playbutton = new JButton (play);
-		//c.gridwidth = 2;
-		c.gridx=0;
-		c.gridy =3;
-		c.weighty = 1.0;
+		Icon stepicon = new ImageIcon("src/play.png");
+		playbutton = new JButton (stepicon);
+		playbutton.setBackground(new Color(240,203,19));
+		c.gridx=1;
+		c.gridy =4;
+		c.gridwidth = 2; 
+		c.gridheight = 1;
+		c.fill = GridBagConstraints.HORIZONTAL;
 		methodPanel.add(playbutton, c);
-		
-		
+
 		playbutton.addActionListener(event -> runCommands());
-
-
+		
 		getContentPane().add(methodPanel, BorderLayout.EAST);
+
 	}
 	
 	public boolean runSingleCommand(String dir) {
@@ -186,13 +200,31 @@ public class RegiCode extends JFrame {
 				public boolean moved=false;
 				public boolean success=false;
 				 public void run() { 
-					 for (String dir : draggedIcons) {
-						 try { 
-							 moved = runSingleCommand(dir);
-						 } catch (Exception e) { 
-							 e.printStackTrace();
+					 int loop = 1;
+					 if(draggedIconsInStar.size()>0) {
+						 switch(draggedIconsInStar.get(0)) {
+						 case "cicle2":
+							 loop=2;
+							 break;
+						 case "cicle3":
+							 loop=3;
+							 break;
+						 case "cicle4":
+							 loop=4;
+							 break;
+						 }
+					 }
+					 
+					 for (int i=0; i < loop; i++) {
+						 for (String dir : draggedIconsInMain) {
+							 try { 
+								 moved = runSingleCommand(dir);
+							 } catch (Exception e) { 
+								 e.printStackTrace();
+							 } 
 						 } 
 					 }
+					 
 					 success = mazecomp.isSolved();
 						if(success) {
 							System.out.println("THE GAME IS SOLVED!");
@@ -214,10 +246,12 @@ public class RegiCode extends JFrame {
 
 	    private DropTarget dropTarget;
 	    private JPanel p;
+	    private String sourcePanel;
 
-	    public MyDropTargetListener(JPanel panel) {
+	    public MyDropTargetListener(JPanel panel, String sourcePanel) {
 	        p = panel;
 	        dropTarget = new DropTarget(panel, DnDConstants.ACTION_COPY, this, true, null);
+	        this.sourcePanel = sourcePanel;
 
 	    }
 
@@ -233,7 +267,17 @@ public class RegiCode extends JFrame {
 	                Icon ico = (Icon) tr.getTransferData(DataFlavor.imageFlavor);
 
 	                if (ico != null) {
-
+	                	
+	                	if (sourcePanel.equals("mainPanel")) {
+	                		draggedIconsInMain.add(ico.toString().split("/")[1].split("\\.")[0]);
+	                	}
+	                	else if (sourcePanel.equals("starPanel")) {
+	                		draggedIconsInStar.add(ico.toString().split("/")[1].split("\\.")[0]);
+	                	}
+	                	
+	                	System.out.println("In Main: " + draggedIconsInMain);
+	                	System.out.println("In Star: " + draggedIconsInStar);
+	                	
 	                    p.add(new JLabel(ico));
 	                    p.revalidate();
 	                    p.repaint();
@@ -378,24 +422,19 @@ public class RegiCode extends JFrame {
 
 		toolBar.addSeparator(new Dimension(100,30));
 
-		Icon staricon = new ImageIcon("src/star.png");
-		star = new JButton(staricon);
-		toolBarGroup.add(star);
-		toolBar.add(star);
-		
 		JPanel panelButton = new JPanel();
 		level1 = new JButton("Level 1");
 		level1.setPreferredSize(new Dimension(575,50));
-		level1.setBackground(new Color(224,176,255));
-		level1.setForeground(Color.BLACK);
+		level1.setBackground(new Color(0,4,85));
+		level1.setForeground(Color.white);
 		level1.setFont(new Font("MontSerrat", Font.BOLD, 30));
 		panelButton.add(level1);
 		toolBar2.add(panelButton);
 		
 		level2 = new JButton("Level 2");
 		level2.setPreferredSize(new Dimension(575,50));
-		level2.setBackground(new Color(224,176,255));
-		level2.setForeground(Color.BLACK);
+		level2.setBackground(new Color(0,4,85));
+		level2.setForeground(Color.white);
 		level2.setEnabled(false);
 		level2.setFont(new Font("MontSerrat", Font.BOLD, 30));
 		panelButton.add(level2);
@@ -403,8 +442,8 @@ public class RegiCode extends JFrame {
 		
 		level3 = new JButton("Level 3");
 		level3.setPreferredSize(new Dimension(575,50));
-		level3.setBackground(new Color(224,176,255));
-		level3.setForeground(Color.BLACK);
+		level3.setBackground(new Color(0,4,85));
+		level3.setForeground(Color.white);
 		level3.setEnabled(false);
 		level3.setFont(new Font("MontSerrat", Font.BOLD, 30));
 		panelButton.add(level3);
@@ -414,6 +453,7 @@ public class RegiCode extends JFrame {
 		
 		toolBar.setFloatable( false);
 		toolBar2.setFloatable( false);
+		
 
 		panel.add(toolBar2);
 	    panel.add(toolBar);
@@ -452,10 +492,6 @@ public class RegiCode extends JFrame {
 		    public void dragGestureRecognized(DragGestureEvent event) {
 		        JButton label = (JButton) event.getComponent();
 		        final Icon ico = label.getIcon();
-		        
-		      
-		        draggedIcons.add(ico.toString().split("/")[1].split("\\.")[0]);
-		        System.out.println(draggedIcons);
 
 
 		        Transferable transferable = new Transferable() {
